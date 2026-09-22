@@ -42,8 +42,8 @@ with top_left:
 
 with top_right:
     st.markdown('<div class="card"><h3>📚 ข้อมูลรายวิชา</h3><p>กำหนดข้อมูลหลักสำหรับโครงการสอน</p>', unsafe_allow_html=True)
-    course_code = st.text_input("รหัสวิชา", value="21901-2011")
-    course_name = st.text_input("ชื่อวิชา", value="การพัฒนาแอปพลิเคชันบนอุปกรณ์เคลื่อนที่")
+    course_code = st.text_input("รหัสวิชา", value="20001-104")
+    course_name = st.text_input("ชื่อวิชา", value="กฏหมายแรงงาน")
     level_col, year_col = st.columns(2)
     with level_col:
         level = st.selectbox("ระดับ", ["ปวช.", "ปวส."])
@@ -53,7 +53,7 @@ with top_right:
 
 documents, schedule = st.columns(2, gap="large")
 with documents:
-    st.markdown('<div class="band">📚 แบบฟอร์มและโครงการสอน</div>', unsafe_allow_html=True)
+    st.markdown('<div class="band">📚 แบบฟอร์มโครงการสอน</div>', unsafe_allow_html=True)
     st.markdown('<div class="card"><p>แบบฟอร์มโครงการสอน (.docx)</p>', unsafe_allow_html=True)
     form_file = st.file_uploader("อัปโหลดแบบฟอร์ม", type=["docx"], key="form_file", label_visibility="collapsed")
     st.markdown('<p>แผนการสอน (PDF)</p>', unsafe_allow_html=True)
