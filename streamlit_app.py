@@ -55,7 +55,6 @@ with top_left:
     st.caption("เมื่อกดวิเคราะห์ PDF และข้อความใน template จะถูกส่งให้ Google Gemini โดยใช้ API Key ของคุณ")
     st.markdown('<div class="band">📚 แบบฟอร์มโครงการสอน</div>', unsafe_allow_html=True)
     st.markdown('<p class="upload-title">อัปโหลด template DOCX</p>', unsafe_allow_html=True)
-    st.caption("ใช้เมื่อเริ่มงาน หรือเมื่อต้องการเปลี่ยนแบบฟอร์ม")
     form_file = st.file_uploader("อัปโหลดแบบฟอร์ม", type=["docx"], key="form_file")
     st.caption("ไม่เกิน 15 MB และต้องมีช่องข้อมูลกับแถวรายสัปดาห์ตามแบบฟอร์ม")
     st.markdown('<p>แผนการสอน (PDF)</p>', unsafe_allow_html=True)
