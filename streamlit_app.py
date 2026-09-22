@@ -79,7 +79,7 @@ with top_right:
     st.markdown('<div class="band">🎓 กำหนดข้อมูลการเรียน</div>', unsafe_allow_html=True)
     hours_col, weeks_col, semester_col = st.columns(3)
     with hours_col:
-        hours = st.selectbox("ชั่วโมง/สัปดาห์", list(range(41)), index=0, help="0 = อ่านจาก PDF")
+        hours = st.selectbox("ชั่วโมง/สัปดาห์", list(range(11)), index=0, help="0 = อ่านจาก PDF")
     with weeks_col:
         weeks = st.number_input("สัปดาห์/ภาคเรียน", min_value=1, max_value=52, value=18, step=1)
     with semester_col:
