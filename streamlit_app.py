@@ -55,7 +55,7 @@ with top_left:
     st.caption("เมื่อกดวิเคราะห์ PDF และข้อความใน template จะถูกส่งให้ Google Gemini โดยใช้ API Key ของคุณ")
     st.markdown('<div class="band">📚 แบบฟอร์มโครงการสอน</div>', unsafe_allow_html=True)
     form_file = st.file_uploader("อัปโหลดแบบฟอร์ม", type=["docx"], key="form_file")
-    st.markdown('<p>แผนการสอน (PDF)</p>', unsafe_allow_html=True)
+    st.markdown('<p>อัปโหลดแผนการสอน (PDF)</p>', unsafe_allow_html=True)
     lesson_plan = st.file_uploader("อัปโหลดแผนการสอน", type=["pdf"], key="lesson_plan", label_visibility="collapsed")
     st.caption("PDF ไม่เกิน 50 MB และ 1,000 หน้า")
     st.markdown("</div>", unsafe_allow_html=True)
