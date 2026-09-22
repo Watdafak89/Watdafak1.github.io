@@ -90,7 +90,7 @@ with schedule:
     with weeks_col:
         weeks = st.number_input("สัปดาห์/ภาคเรียน", min_value=1, max_value=52, value=18, step=1)
     with semester_col:
-        semester = st.text_input("ภาคเรียนที่", placeholder="เช่น 1/2569")
+        semester = st.selectbox("ภาคเรียนที่", ["1/2569", "2/2569"])
     st.caption("เลขแผ่นและเลขหน้าเรียงอัตโนมัติเมื่อเปิดเอกสารใน Word")
 
 st.write("")
