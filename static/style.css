@@ -16,7 +16,7 @@ h1 { font-family: 'Kanit', sans-serif; font-size: clamp(27px, 3vw, 35px); line-h
 .dashboard-grid { width: min(920px, 100%); margin-inline: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
 .card { border: 1px solid var(--line); border-radius: 7px; padding: 23px 13px 14px; background: rgba(245, 251, 251, .55); }
 .intro-grid { margin-bottom: 14px; }
-.centered-heading { align-items: center; }
+.centered-heading { align-items: center; justify-content: center; text-align: center; }
 .centered-heading h2 { margin-bottom: 4px; }
 .secret-input { display: flex; background: #fff; border: 1px solid #e2eaf0; border-radius: 8px; padding: 0 9px 0 13px; align-items: center; margin-bottom: 14px; }
 .secret-input input { min-width: 0; flex: 1; border: 0; height: 34px; outline: none; font-size: 12px; color: var(--ink); }
@@ -25,6 +25,10 @@ h1 { font-family: 'Kanit', sans-serif; font-size: clamp(27px, 3vw, 35px); line-h
 .save-button { width: 100%; height: 36px; border: 1px solid #cadde0; border-radius: 7px; background: #fff; color: #28556a; cursor: pointer; font-size: 12px; }
 .save-button:hover { border-color: var(--teal); color: #087c83; }
 .api-link { display: block; color: #166495; font-size: 12px; margin-top: 13px; }
+.api-card .api-link { text-align: center; }
+.api-card .secret-input, .api-card .save-button { max-width: 420px; margin-left: auto; margin-right: auto; }
+.teacher-card { text-align: center; }
+.teacher-card .wide-field { text-align: left; }
 .wide-field { display: grid; gap: 7px; font-size: 12px; margin-bottom: 14px; }
 .wide-field:last-child { margin-bottom: 0; }
 .wide-field input, .wide-field select { width: 100%; border: 1px solid transparent; border-radius: 8px; outline: 0; background: var(--blue-soft); color: #274e65; height: 35px; padding: 0 11px; font-size: 12px; }

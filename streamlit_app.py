@@ -22,8 +22,8 @@ st.markdown(
     .hero p { margin: 0; color: #c4f1ef; font-size: .85rem; }
     .band { border-left: 4px solid #18a7a7; border-bottom: 1px solid #d7e9e8; color: #176176; font-size: 1.05rem; font-weight: 600; padding: 8px 12px; margin: 12px 0 14px; background: rgba(228,246,243,.28); }
     .card { border: 1px solid #cbdcdf; border-radius: 7px; padding: 18px 20px; background: rgba(245,251,251,.55); min-height: 150px; }
-    .card h3 { color: #145363; font-family: 'Kanit', sans-serif; font-weight: 500; margin: 0 0 5px; }
-    .card p { color: var(--muted); font-size: .78rem; margin: 0 0 12px; }
+    .card h3 { color: #145363; font-family: 'Kanit', sans-serif; font-weight: 500; margin: 0 0 5px; text-align: center; }
+    .card p { color: var(--muted); font-size: .78rem; margin: 0 0 12px; text-align: center; }
     .stButton > button { border-color: #137d84; color: white; background: #16aeb0; border-radius: 7px; }
     .stButton > button:hover { border-color: #0c7278; color: white; background: #119395; }
     [data-testid="stFileUploader"] { background: rgba(255,255,255,.75); border: 1px dashed #b7dfe0; border-radius: 8px; padding: 8px; }
