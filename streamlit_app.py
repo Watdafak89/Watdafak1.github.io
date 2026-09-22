@@ -25,6 +25,7 @@ st.markdown(
     .field-title { color: #176176; font-size: 1.05rem; font-weight: 600; padding: 8px 12px; margin: 12px 0 8px; border-left: 4px solid #18a7a7; border-bottom: 1px solid #d7e9e8; background: rgba(228,246,243,.28); }
     .card { border: 1px solid #cbdcdf; border-radius: 7px; padding: 18px 20px; background: rgba(245,251,251,.55); min-height: 150px; }
     .api-card { border: 2px solid #16aeb0; box-shadow: 0 0 0 4px rgba(22,174,176,.10), 0 10px 18px rgba(18,63,73,.08); }
+    .api-card [data-testid="stTextInput"] input { border: 2px solid #16aeb0; box-shadow: 0 0 0 3px rgba(22,174,176,.12); background: #fff; }
     .card h3 { color: #145363; font-family: 'Kanit', sans-serif; font-weight: 500; margin: 0 0 5px; text-align: center; }
     .card p { color: var(--muted); font-size: .78rem; margin: 0 0 12px; text-align: center; }
     .stButton > button { border-color: #137d84; color: white; background: #16aeb0; border-radius: 7px; }
