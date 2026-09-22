@@ -62,7 +62,6 @@ with documents:
 
 with schedule:
     st.markdown('<div class="band">🎓 กำหนดข้อมูลการเรียน</div>', unsafe_allow_html=True)
-    st.markdown('<div class="card">', unsafe_allow_html=True)
     hours_col, weeks_col, semester_col = st.columns(3)
     with hours_col:
         hours = st.number_input("ชั่วโมง/สัปดาห์", min_value=0, value=5, step=1)
@@ -70,7 +69,6 @@ with schedule:
         weeks = st.number_input("สัปดาห์/ภาคเรียน", min_value=0, value=18, step=1)
     with semester_col:
         semester = st.text_input("ภาคเรียนที่", value="1/2569")
-    st.markdown("</div>", unsafe_allow_html=True)
 
 st.write("")
 if st.button("✨ วิเคราะห์แผนการสอน", use_container_width=True, type="primary"):
