@@ -48,15 +48,37 @@ def pdf_bytes():
 
 
 class TemplateTests(unittest.TestCase):
-    def test_fills_form_numbers_and_keeps_existing_numbers(self):
+    def test_form_numbers_become_dynamic_page_fields(self):
         extra = '<w:p><w:r><w:t>แผ่นที่ : </w:t></w:r></w:p><w:p><w:r><w:t>หน้า</w:t></w:r><w:r><w:t>ที่</w:t></w:r></w:p><w:p><w:r><w:t>หน้าที่ 99</w:t></w:r></w:p>'
-        output = render_template(template_bytes(extra), plan_data(), sheet_number=2, page_number=7)
+        output = render_template(template_bytes(extra), plan_data())
         with ZipFile(BytesIO(output)) as archive:
             root = etree.fromstring(archive.read('word/document.xml'))
             paragraphs = [text_of(p) for p in root.xpath('.//w:p', namespaces=NS)]
-        self.assertIn('แผ่นที่ :  2', paragraphs)
-        self.assertIn('หน้าที่ 7', paragraphs)
-        self.assertIn('หน้าที่ 99', paragraphs)
+        self.assertIn('แผ่นที่ : 1', paragraphs)
+        self.assertIn('หน้าที่ 1', paragraphs)
+        self.assertNotIn('หน้าที่ 99', paragraphs)
+        self.assertEqual(root.xpath('.//w:fldSimple/@w:instr', namespaces=NS), [' PAGE '] * 3)
+
+    def test_page_fields_move_to_actual_header_not_repeated_table(self):
+        source = template_bytes()
+        buffer = BytesIO()
+        with ZipFile(BytesIO(source)) as original, ZipFile(buffer, 'w') as archive:
+            for name in original.namelist():
+                data = original.read(name)
+                if name == 'word/document.xml':
+                    data = data.replace('หัวตาราง'.encode(), 'หน้าที่'.encode())
+                archive.writestr(name, data)
+            archive.writestr('[Content_Types].xml', '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"/>')
+            archive.writestr('word/settings.xml', '<w:settings xmlns:w="' + NS['w'] + '"/>')
+        with ZipFile(BytesIO(render_template(buffer.getvalue(), plan_data()))) as output:
+            body = etree.fromstring(output.read('word/document.xml'))
+            header = etree.fromstring(output.read('word/header1.xml'))
+            self.assertEqual(len(body.xpath('.//w:headerReference', namespaces=NS)), 3)
+            self.assertFalse(body.xpath('.//w:fldSimple', namespaces=NS))
+            self.assertEqual(header.xpath('.//w:fldSimple/@w:instr', namespaces=NS), [' PAGE '])
+            self.assertEqual(len(body.xpath('.//w:tr', namespaces=NS)), 2)
+            settings = etree.fromstring(output.read('word/settings.xml'))
+            self.assertEqual(settings.find('{' + NS['w'] + '}updateFields').get('{' + NS['w'] + '}val'), 'true')
 
     def test_split_tokens_rows_and_package_preservation(self):
         source = template_bytes()

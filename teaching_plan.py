@@ -305,31 +305,131 @@ def _replace(paragraph, values):
             offset = end
 
 
-def _fill_form_numbers(root, sheet_number, page_number):
+def _fill_form_numbers(root):
     changed = False
     for paragraph in root.xpath('.//w:p', namespaces=NS):
         label = text_of(paragraph).strip()
-        number = None
-        if re.fullmatch(r'แผ่นที่\s*:?\s*', label):
-            number = sheet_number
-        elif re.fullmatch(r'หน้าที่\s*:?\s*', label):
-            number = page_number
-        if number is None or paragraph.xpath('.//w:fldSimple | .//w:fldChar', namespaces=NS):
+        if not re.fullmatch(r'(?:แผ่นที่|หน้าที่)\s*:?\s*\d*\s*', label):
             continue
-        run = etree.SubElement(paragraph, W + 'r')
+        if paragraph.xpath('.//w:fldSimple | .//w:fldChar', namespaces=NS):
+            continue
+        # Replace any old manually entered number, keeping the label's styling.
+        nodes = paragraph.xpath('.//w:t', namespaces=NS)
+        if nodes:
+            nodes[0].text = re.sub(r'\d+\s*$', '', label).rstrip() + ' '
+            nodes[0].set('{http://www.w3.org/XML/1998/namespace}space', 'preserve')
+            for node in nodes[1:]:
+                node.text = ''
+        field = etree.SubElement(paragraph, W + 'fldSimple')
+        field.set(W + 'instr', ' PAGE ')
+        field.set(W + 'dirty', 'true')
+        run = etree.SubElement(field, W + 'r')
         properties = paragraph.find('.//' + W + 'rPr')
         if properties is not None:
             run.append(deepcopy(properties))
         text = etree.SubElement(run, W + 't')
         text.set('{http://www.w3.org/XML/1998/namespace}space', 'preserve')
-        text.text = f' {number}'
+        text.text = '1'
         changed = True
     return changed
 
 
-def render_template(template, plan, sheet_number=1, page_number=1):
-    if any(type(value) is not int or not 1 <= value <= 9999 for value in (sheet_number, page_number)):
-        raise PlanError('เลขแผ่นและเลขหน้าต้องเป็นจำนวนเต็มตั้งแต่ 1 ถึง 9999')
+def _automatic_page_header(root, table, parts):
+    """PAGE fields must live in real page headers, not repeated table rows."""
+    headers = []
+    for row in table.findall(W + 'tr'):
+        if row.find('./' + W + 'trPr/' + W + 'tblHeader') is None:
+            break
+        headers.append(row)
+    if not any(re.search(r'แผ่นที่|หน้าที่', text_of(row)) for row in headers):
+        return
+    sections = root.xpath('.//w:sectPr', namespaces=NS)
+    if len(sections) != 1:
+        raise PlanError('เลขหน้าอัตโนมัติในแบบฟอร์มนี้รองรับ template ที่มีหนึ่ง section กรุณารวม section ก่อน')
+    section = sections[0]
+    rel_ns = 'http://schemas.openxmlformats.org/package/2006/relationships'
+    r_ns = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships'
+    ct_ns = 'http://schemas.openxmlformats.org/package/2006/content-types'
+    rel_tag = '{' + rel_ns + '}Relationship'
+    rel_path = 'word/_rels/document.xml.rels'
+    relationships = _xml(parts[rel_path]) if rel_path in parts else etree.Element('{' + rel_ns + '}Relationships', nsmap={None: rel_ns})
+    content_types = _xml(parts['[Content_Types].xml'])
+    header_table = etree.Element(W + 'tbl', nsmap=root.nsmap)
+    for child in table:
+        if child.tag in (W + 'tblPr', W + 'tblGrid'):
+            header_table.append(deepcopy(child))
+    for row in headers:
+        header_table.append(deepcopy(row))
+        table.remove(row)
+    # Link all page variants, including first and even pages, to real headers.
+    refs = {ref.get(W + 'type'): ref for ref in section.findall(W + 'headerReference')}
+    targets = []
+    for variant in ('default', 'first', 'even'):
+        ref = refs.get(variant)
+        if ref is not None:
+            relationship = next((r for r in relationships if r.get('Id') == ref.get('{' + r_ns + '}id')), None)
+            if relationship is None:
+                raise PlanError('ความสัมพันธ์ของหัวกระดาษใน template ไม่ถูกต้อง')
+            target = relationship.get('Target', '')
+            if not re.fullmatch(r'header[^/]*\.xml', target):
+                raise PlanError('ตำแหน่งหัวกระดาษของ template ยังไม่รองรับ')
+            path = 'word/' + target
+        else:
+            # Reuse the default header when no custom variant exists.
+            if targets:
+                path, rid = targets[0]
+            else:
+                number = 1
+                while f'word/header{number}.xml' in parts:
+                    number += 1
+                path = f'word/header{number}.xml'
+                rid = 'rIdAutoPage'
+                while any(r.get('Id') == rid for r in relationships):
+                    rid += 'x'
+                etree.SubElement(relationships, rel_tag, Id=rid, Type=r_ns + '/header', Target=path[5:])
+                parts[path] = etree.tostring(etree.Element(W + 'hdr', nsmap=root.nsmap))
+                etree.SubElement(content_types, '{' + ct_ns + '}Override', PartName='/' + path,
+                                 ContentType='application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml')
+            ref = etree.Element(W + 'headerReference')
+            ref.set(W + 'type', variant)
+            ref.set('{' + r_ns + '}id', rid)
+            section.insert(0, ref)
+        targets.append((path, ref.get('{' + r_ns + '}id')))
+    for path in dict(targets):
+        header = _xml(parts[path])
+        copied = deepcopy(header_table)
+        header_rel_path = 'word/_rels/' + path[5:] + '.rels'
+        header_rels = _xml(parts[header_rel_path]) if header_rel_path in parts else etree.Element('{' + rel_ns + '}Relationships', nsmap={None: rel_ns})
+        mapped = {}
+        for node in copied.iter():
+            for attribute, value in list(node.attrib.items()):
+                if attribute.startswith('{' + r_ns + '}'):
+                    if value not in mapped:
+                        source = next((r for r in relationships if r.get('Id') == value), None)
+                        if source is None:
+                            raise PlanError('ไม่พบรูปภาพหรือความสัมพันธ์ในหัวแบบฟอร์ม')
+                        new_id = 'rIdForm' + str(len(mapped) + 1)
+                        while any(r.get('Id') == new_id for r in header_rels):
+                            new_id += 'x'
+                        relationship = deepcopy(source)
+                        relationship.set('Id', new_id)
+                        header_rels.append(relationship)
+                        mapped[value] = new_id
+                    node.set(attribute, mapped[value])
+        header.append(copied)
+        tail = etree.SubElement(header, W + 'p')
+        properties = etree.SubElement(tail, W + 'pPr')
+        spacing = etree.SubElement(properties, W + 'spacing')
+        for name, value in [('before', '0'), ('after', '0'), ('line', '20'), ('lineRule', 'exact')]:
+            spacing.set(W + name, value)
+        parts[path] = etree.tostring(header, xml_declaration=True, encoding='UTF-8', standalone=True)
+        if len(header_rels):
+            parts[header_rel_path] = etree.tostring(header_rels, xml_declaration=True, encoding='UTF-8', standalone=True)
+    parts[rel_path] = etree.tostring(relationships, xml_declaration=True, encoding='UTF-8', standalone=True)
+    parts['[Content_Types].xml'] = etree.tostring(content_types, xml_declaration=True, encoding='UTF-8', standalone=True)
+
+
+def render_template(template, plan):
     inspect_template(template)
     plan = validate_plan(plan)
     infos, parts = _parts(template)
@@ -369,16 +469,29 @@ def render_template(template, plan, sheet_number=1, page_number=1):
         if row.tag != W + 'tr' or text_of(row).strip() or row.xpath('.//w:drawing | .//w:pict | .//w:fldChar', namespaces=NS):
             break
         table.remove(row)
+    _automatic_page_header(root, table, parts)
+    numbered_any = False
     for name in _word_parts(parts):
         part = root if name == 'word/document.xml' else _xml(parts[name])
-        numbered = _fill_form_numbers(part, sheet_number, page_number)
+        numbered = _fill_form_numbers(part)
+        numbered_any = numbered_any or numbered
         has_tokens = any(TOKEN.search(text_of(p)) for p in part.xpath('.//w:p', namespaces=NS))
         if name == 'word/document.xml' or has_tokens or numbered:
             for paragraph in part.xpath('.//w:p', namespaces=NS):
                 _replace(paragraph, metadata)
             parts[name] = etree.tostring(part, xml_declaration=True, encoding='UTF-8', standalone=True)
+    if numbered_any and 'word/settings.xml' in parts:
+        settings = _xml(parts['word/settings.xml'])
+        update = settings.find(W + 'updateFields')
+        if update is None:
+            update = etree.SubElement(settings, W + 'updateFields')
+        update.set(W + 'val', 'true')
+        parts['word/settings.xml'] = etree.tostring(settings, xml_declaration=True, encoding='UTF-8', standalone=True)
     output = BytesIO()
     with ZipFile(output, 'w') as archive:
         for info in infos:
             archive.writestr(info, parts[info.filename])
+        original_names = {info.filename for info in infos}
+        for name in parts.keys() - original_names:
+            archive.writestr(name, parts[name])
     return output.getvalue()
