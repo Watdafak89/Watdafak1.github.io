@@ -4,7 +4,7 @@ body { margin: 0; color: var(--ink); background-color: var(--paper); background-
 button, input, select { font: inherit; }
 .app-shell { min-height: 100vh; display: block; }
 .sidebar { display: none; }
-.main-content { width: min(1065px, calc(100% - 28px)); margin: 0 auto; padding: 26px 0 30px; }
+.main-content { width: min(960px, calc(100% - 40px)); margin: 0 auto; padding: 26px 0 30px; }
 .hero { min-height: 164px; padding: 22px 38px 25px; margin: 0 0 24px; border: 1px solid #22646d; border-left: 6px solid #5bd1c8; border-radius: 11px; color: #fff; background: var(--navy); box-shadow: 0 12px 20px rgba(18, 63, 73, .12); display: flex; justify-content: center; text-align: center; align-items: center; overflow: hidden; position: relative; }
 .hero::after { content: ''; position: absolute; width: 250px; height: 190px; right: 35px; top: -48px; border: 1px solid rgba(125, 224, 218, .22); transform: rotate(34deg); }
 .eyebrow { font-size: 10px; letter-spacing: 2px; opacity: .68; margin: 0 0 7px; }
@@ -13,7 +13,7 @@ h1 { font-family: 'Kanit', sans-serif; font-size: clamp(27px, 3vw, 35px); line-h
 .hero-subtitle { font-size: 12px; margin: 0; color: #c4f1ef; }
 .hero-orbit { display: none; }
 .steps { display: none; }
-.dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 54px; }
+.dashboard-grid { width: min(920px, 100%); margin-inline: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
 .card { border: 1px solid var(--line); border-radius: 7px; padding: 23px 13px 14px; background: rgba(245, 251, 251, .55); }
 .intro-grid { margin-bottom: 14px; }
 .centered-heading { align-items: center; }
@@ -29,7 +29,7 @@ h1 { font-family: 'Kanit', sans-serif; font-size: clamp(27px, 3vw, 35px); line-h
 .wide-field:last-child { margin-bottom: 0; }
 .wide-field input, .wide-field select { width: 100%; border: 1px solid transparent; border-radius: 8px; outline: 0; background: var(--blue-soft); color: #274e65; height: 35px; padding: 0 11px; font-size: 12px; }
 .compact-course-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-.content-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 54px; }
+.content-grid { width: min(920px, 100%); margin-inline: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
 .content-column { min-width: 0; }
 .band-title { min-height: 42px; display: flex; align-items: center; gap: 7px; border-left: 4px solid #18a7a7; border-bottom: 1px solid #d7e9e8; color: #176176; font-size: 16px; font-weight: 600; padding: 7px 12px; margin-bottom: 14px; background: rgba(228, 246, 243, .28); }
 .band-title span { font-size: 16px; }

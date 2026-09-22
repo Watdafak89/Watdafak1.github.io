@@ -16,7 +16,7 @@ st.markdown(
     :root { --ink: #173e48; --muted: #6f858b; --line: #cbdcdf; --navy: #123f49; --teal: #16aeb0; --blue-soft: #eaf1fb; }
     html, body, [class*="css"] { font-family: 'Prompt', sans-serif; color: var(--ink); }
     .stApp { background-color: #f5fbfb; background-image: linear-gradient(rgba(31,112,119,.07) 1px, transparent 1px), linear-gradient(90deg, rgba(31,112,119,.07) 1px, transparent 1px); background-size: 32px 32px; }
-    .block-container { max-width: 1065px; padding-top: 2rem; }
+    .block-container { max-width: 960px; margin: 0 auto; padding-top: 2rem; }
     .hero { min-height: 138px; padding: 24px 36px; margin-bottom: 22px; border: 1px solid #22646d; border-left: 6px solid #5bd1c8; border-radius: 11px; color: white; background: #123f49; text-align: center; box-shadow: 0 12px 20px rgba(18,63,73,.12); }
     .hero h1 { font-family: 'Kanit', sans-serif; margin: 0 0 8px; font-size: 2.25rem; }
     .hero p { margin: 0; color: #c4f1ef; font-size: .85rem; }
