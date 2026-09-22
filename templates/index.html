@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ระบบจัดทำโครงการสอน</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Prompt:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand-mark"><i data-lucide="layers-3"></i></div>
+      <div class="sidebar-rule"></div>
+      <nav class="side-nav" aria-label="เมนูหลัก">
+        <a class="side-link active" href="#workspace"><i data-lucide="settings-2"></i><span>ตั้งค่าระบบ</span></a>
+        <a class="side-link" href="#api"><i data-lucide="sparkles"></i><span>เชื่อมต่อ Gemini</span></a>
+      </nav>
+
+      <section class="api-panel" id="api">
+        <label for="api-key">Gemini API Key</label>
+        <div class="secret-input">
+          <input id="api-key" type="password" placeholder="กรอก API Key เพื่อวิเคราะห์ PDF">
+          <button type="button" class="icon-button" id="toggle-key" aria-label="แสดง API key"><i data-lucide="eye"></i></button>
+        </div>
+        <p class="help-text">เอกสารจะถูกส่งให้ Gemini เมื่อกดวิเคราะห์เท่านั้น</p>
+        <a href="https://aistudio.google.com/apikey" target="_blank" rel="noreferrer">รับ API Key จาก Google AI Studio</a>
+      </section>
+
+      <div class="sidebar-bottom">
+        <div class="sidebar-rule"></div>
+        <p>ระบบจัดทำโครงการสอน · ส่งออก Word ตามแบบฟอร์มวิทยาลัย</p>
+      </div>
+    </aside>
+
+    <main class="main-content" id="workspace">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">TEACHING PLAN WORKSPACE</p>
+          <h1>ระบบจัดทำโครงการสอน</h1>
+          <p class="hero-subtitle">เปลี่ยนแผนการสอนเป็นตารางรายสัปดาห์ ตรวจแก้ข้อมูล และส่งออกตามแบบฟอร์มวิทยาลัย</p>
+        </div>
+        <div class="hero-orbit"><i data-lucide="file-chart-column"></i></div>
+      </header>
+
+      <form id="course-form" novalidate>
+        <div class="dashboard-grid intro-grid">
+          <section class="card api-card">
+            <div class="section-heading centered-heading">
+              <div class="heading-icon blue"><span aria-hidden="true">🔑</span></div>
+              <div><h2>Gemini API Key</h2><p>ใส่ API Key แล้วกด บันทึก ก่อนสร้างเอกสาร</p></div>
+            </div>
+            <div class="secret-input">
+              <input id="api-key" type="password" placeholder="วาง API Key ของคุณ">
+              <button type="button" class="icon-button" id="toggle-key" aria-label="แสดง API key"><i data-lucide="eye"></i></button>
+            </div>
+            <button type="button" class="save-button">บันทึก</button>
+            <a class="api-link" href="https://aistudio.google.com/apikey" target="_blank" rel="noreferrer">กดเพื่อรับ Gemini API Key</a>
+          </section>
+
+          <section class="card teacher-card">
+            <div class="section-heading centered-heading">
+              <div class="heading-icon teal"><span aria-hidden="true">🧑‍🏫</span></div>
+              <div><h2>ข้อมูลรายวิชา</h2><p>กำหนดข้อมูลหลักสำหรับโครงการสอน</p></div>
+            </div>
+            <label class="wide-field">รหัสวิชา<input name="course_code" value="21901-2011"></label>
+            <label class="wide-field">ชื่อวิชา<input name="course_name" value="การพัฒนาแอปพลิเคชันบนอุปกรณ์เคลื่อนที่"></label>
+            <div class="compact-course-grid">
+              <label class="wide-field">ระดับ<select name="level"><option>ปวช.</option><option>ปวส.</option></select></label>
+              <label class="wide-field">ปีที่<select name="year"><option>1</option><option>2</option><option>3</option></select></label>
+            </div>
+          </section>
+        </div>
+
+        <div class="content-grid">
+          <section class="content-column">
+            <div class="band-title"><span>📚</span> แบบฟอร์มและโครงการสอน</div>
+            <section class="card documents-card">
+            <div class="section-heading">
+              <div class="heading-icon blue"><i data-lucide="file-up"></i></div>
+              <div><h2>เอกสารอ้างอิง</h2><p>แผนการสอนเป็นข้อมูลหลัก ส่วนโครงการสอนตัวอย่างช่วยกำหนดลำดับและรูปแบบ</p></div>
+            </div>
+            <div class="upload-list">
+              <div class="upload-field">
+                <label for="college-form">แบบฟอร์มโครงการสอน <span>.docx</span></label>
+                <div class="upload-box">
+                  <input id="college-form" class="file-input" type="file" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" data-label="college-form-name">
+                  <label class="upload-button" for="college-form"><i data-lucide="upload"></i> Upload</label>
+                  <span id="college-form-name">15MB per file · DOCX</span>
+                </div>
+              </div>
+              <div class="upload-field">
+                <label for="lesson-plan">แผนการสอน <span>PDF</span></label>
+                <div class="upload-box">
+                  <input id="lesson-plan" class="file-input" type="file" accept=".pdf,.doc,.docx,.txt,.png,.jpg" data-label="lesson-plan-name">
+                  <label class="upload-button" for="lesson-plan"><i data-lucide="upload"></i> Upload</label>
+                  <span id="lesson-plan-name">200MB per file · PDF</span>
+                </div>
+              </div>
+            </div>
+            </section>
+          </section>
+
+          <section class="content-column">
+            <div class="band-title"><span>🎓</span> กำหนดข้อมูลการเรียน</div>
+            <section class="card course-card">
+            <div class="form-grid">
+              <label>ชั่วโมง/สัปดาห์<div class="stepper"><input name="hours" type="number" min="0" value="5"><button type="button" data-step-target="hours" data-step="-1">−</button><button type="button" data-step-target="hours" data-step="1">+</button></div></label>
+              <label>สัปดาห์/ภาคเรียน<div class="stepper"><input name="weeks" type="number" min="0" value="18"><button type="button" data-step-target="weeks" data-step="-1">−</button><button type="button" data-step-target="weeks" data-step="1">+</button></div></label>
+              <label>ภาคเรียนที่<input name="semester" value="1/2569"></label>
+            </div>
+            </section>
+          </section>
+        </div>
+        <button class="analyze-button" type="submit"><i data-lucide="wand-sparkles"></i> วิเคราะห์แผนการสอน</button>
+      </form>
+      <div id="status" class="status" role="status" aria-live="polite"></div>
+    </main>
+  </div>
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
