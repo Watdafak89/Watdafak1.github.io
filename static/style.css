@@ -15,7 +15,7 @@ h1 { font-family: 'Kanit', sans-serif; font-size: clamp(27px, 3vw, 35px); line-h
 .steps { display: none; }
 .dashboard-grid { width: min(920px, 100%); margin-inline: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
 .card { border: 1px solid var(--line); border-radius: 7px; padding: 23px 13px 14px; background: rgba(245, 251, 251, .55); }
-.intro-grid { margin-bottom: 14px; }
+.intro-grid { margin-bottom: 0; }
 .centered-heading { align-items: center; justify-content: center; text-align: center; }
 .centered-heading h2 { margin-bottom: 4px; }
 .secret-input { display: flex; background: #fff; border: 1px solid #e2eaf0; border-radius: 8px; padding: 0 9px 0 13px; align-items: center; margin-bottom: 14px; }
@@ -33,7 +33,7 @@ h1 { font-family: 'Kanit', sans-serif; font-size: clamp(27px, 3vw, 35px); line-h
 .wide-field:last-child { margin-bottom: 0; }
 .wide-field input, .wide-field select { width: 100%; border: 1px solid transparent; border-radius: 8px; outline: 0; background: var(--blue-soft); color: #274e65; height: 35px; padding: 0 11px; font-size: 12px; }
 .compact-course-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-.content-grid { width: min(920px, 100%); margin-inline: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+.content-grid { width: min(920px, 100%); margin: -8px auto 0; display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
 .content-column { min-width: 0; }
 .band-title { min-height: 42px; display: flex; align-items: center; gap: 7px; border-left: 4px solid #18a7a7; border-bottom: 1px solid #d7e9e8; color: #176176; font-size: 16px; font-weight: 600; padding: 7px 12px; margin-bottom: 14px; background: rgba(228, 246, 243, .28); }
 .band-title span { font-size: 16px; }
