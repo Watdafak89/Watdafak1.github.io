@@ -222,6 +222,8 @@ weeks: w=สัปดาห์, t=หัวข้อ, p=Teaching Point, a=กิ
 ถ้า h หรือ n ไม่พบและผู้ใช้ไม่กำหนด ให้เสนอค่าที่เหมาะสมและระบุว่าเป็นข้อเสนอใน notes
 กิจกรรม สื่อ หรือวิธีวัดผลที่เสนอเพิ่มเติมต้องสอดคล้องกับ PDF และระบุใน notes
 ห้ามกรอกลายเซ็น ชื่อผู้อนุมัติ หรือยืนยันการอนุมัติแทนบุคคล
+จัดข้อความเป็นวลีสั้นตามความหมาย ใช้ช่องว่างระหว่างวลีและเครื่องหมายวรรคตอนให้เหมาะสม
+ห้ามส่งข้อความเป็นคำยาวติดกันจน Word ต้องตัดกลางคำ และห้ามใส่การขึ้นบรรทัดใหม่กลางคำหรือชื่ออุปกรณ์
 '''
 
 
@@ -299,10 +301,19 @@ def _replace(paragraph, values):
             if offset < match.end() and end > match.start():
                 left = max(0, match.start() - offset)
                 right = min(len(text), match.end() - offset)
-                replacement = str(values[match.group(1)]) if offset <= match.start() < end else ''
+                replacement = _layout_text(str(values[match.group(1)])) if offset <= match.start() < end else ''
                 node.text = text[:left] + replacement + text[right:]
                 node.set('{http://www.w3.org/XML/1998/namespace}space', 'preserve')
             offset = end
+
+
+def _layout_text(value):
+    """Add optional breaks at punctuation while preserving whole words."""
+    value = re.sub(r'[ \t\r\n]+', ' ', value).strip()
+    value = value.replace('\u00ad', '')
+    value = re.sub(r'([,;:|•])(?=[^\s])', lambda match: match.group(1) + '\u200b', value)
+    value = re.sub(r'([。！？ฯ])(?=[^\s])', lambda match: match.group(1) + '\u200b', value)
+    return value
 
 
 def _fill_form_numbers(root):

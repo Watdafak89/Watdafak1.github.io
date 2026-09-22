@@ -10,7 +10,7 @@ from pypdf import PdfWriter
 
 from teaching_plan import (
     END, NS, START, PlanError, generate_plan, inspect_template,
-    render_template, text_of, validate_pdf, validate_plan, gemini_schema, provider_error,
+    render_template, text_of, validate_pdf, validate_plan, gemini_schema, provider_error, _layout_text,
 )
 
 
@@ -48,6 +48,13 @@ def pdf_bytes():
 
 
 class TemplateTests(unittest.TestCase):
+    def test_layout_keeps_words_and_adds_only_semantic_break_points(self):
+        text = _layout_text('ติดตั้งระบบเครือข่าย TCP/IP และสาย UTP/FTP')
+        self.assertIn('TCP/IP', text)
+        self.assertIn('UTP/FTP', text)
+        self.assertNotIn('TCP\u200b/IP', text)
+        self.assertNotIn('\n', text)
+
     def test_form_numbers_become_dynamic_page_fields(self):
         extra = '<w:p><w:r><w:t>แผ่นที่ : </w:t></w:r></w:p><w:p><w:r><w:t>หน้า</w:t></w:r><w:r><w:t>ที่</w:t></w:r></w:p><w:p><w:r><w:t>หน้าที่ 99</w:t></w:r></w:p>'
         output = render_template(template_bytes(extra), plan_data())
