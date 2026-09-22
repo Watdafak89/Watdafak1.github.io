@@ -305,7 +305,31 @@ def _replace(paragraph, values):
             offset = end
 
 
-def render_template(template, plan):
+def _fill_form_numbers(root, sheet_number, page_number):
+    changed = False
+    for paragraph in root.xpath('.//w:p', namespaces=NS):
+        label = text_of(paragraph).strip()
+        number = None
+        if re.fullmatch(r'แผ่นที่\s*:?\s*', label):
+            number = sheet_number
+        elif re.fullmatch(r'หน้าที่\s*:?\s*', label):
+            number = page_number
+        if number is None or paragraph.xpath('.//w:fldSimple | .//w:fldChar', namespaces=NS):
+            continue
+        run = etree.SubElement(paragraph, W + 'r')
+        properties = paragraph.find('.//' + W + 'rPr')
+        if properties is not None:
+            run.append(deepcopy(properties))
+        text = etree.SubElement(run, W + 't')
+        text.set('{http://www.w3.org/XML/1998/namespace}space', 'preserve')
+        text.text = f' {number}'
+        changed = True
+    return changed
+
+
+def render_template(template, plan, sheet_number=1, page_number=1):
+    if any(type(value) is not int or not 1 <= value <= 9999 for value in (sheet_number, page_number)):
+        raise PlanError('เลขแผ่นและเลขหน้าต้องเป็นจำนวนเต็มตั้งแต่ 1 ถึง 9999')
     inspect_template(template)
     plan = validate_plan(plan)
     infos, parts = _parts(template)
@@ -347,8 +371,9 @@ def render_template(template, plan):
         table.remove(row)
     for name in _word_parts(parts):
         part = root if name == 'word/document.xml' else _xml(parts[name])
+        numbered = _fill_form_numbers(part, sheet_number, page_number)
         has_tokens = any(TOKEN.search(text_of(p)) for p in part.xpath('.//w:p', namespaces=NS))
-        if name == 'word/document.xml' or has_tokens:
+        if name == 'word/document.xml' or has_tokens or numbered:
             for paragraph in part.xpath('.//w:p', namespaces=NS):
                 _replace(paragraph, metadata)
             parts[name] = etree.tostring(part, xml_declaration=True, encoding='UTF-8', standalone=True)

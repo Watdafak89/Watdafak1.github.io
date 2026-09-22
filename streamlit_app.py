@@ -91,6 +91,12 @@ with schedule:
         weeks = st.number_input("สัปดาห์/ภาคเรียน", min_value=1, max_value=52, value=18, step=1)
     with semester_col:
         semester = st.text_input("ภาคเรียนที่", placeholder="เช่น 1/2569")
+    sheet_col, page_col = st.columns(2)
+    with sheet_col:
+        sheet_number = st.number_input("แผ่นที่", min_value=1, max_value=9999, value=1, step=1)
+    with page_col:
+        page_number = st.number_input("หน้าที่", min_value=1, max_value=9999, value=1, step=1)
+    st.caption("เลขแผ่นและเลขหน้าจะใส่ตามค่าที่ระบุในช่องของ template")
 
 st.write("")
 settings = {
@@ -121,7 +127,7 @@ if st.button("✨ วิเคราะห์แผนการสอน", use_c
                 plan = generate_plan(active_key, pdf_bytes, template_bytes, settings,
                                      model=model.strip(), progress=st.write)
                 st.write("กำลังเติมข้อมูลลงใน template")
-                render_template(template_bytes, plan)
+                render_template(template_bytes, plan, sheet_number, page_number)
                 status.update(label="สร้างโครงการสอนแล้ว", state="complete", expanded=False)
             except Exception:
                 status.update(label="สร้างโครงการสอนไม่สำเร็จ", state="error")
@@ -159,7 +165,7 @@ elif result:
     try:
         updated = {**data, 'weeks': edited}
         updated.update({key: row['ข้อมูล'] for key, row in zip(meta_labels, metadata)})
-        document = render_template(template_bytes, validate_plan(updated))
+        document = render_template(template_bytes, validate_plan(updated), sheet_number, page_number)
         safe_code = re.sub(r'[^\w.-]', '_', str(updated['code']))[:60]
         st.download_button("ดาวน์โหลดโครงการสอน Word", data=document,
             file_name=f'โครงการสอน_{safe_code}.docx',

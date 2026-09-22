@@ -48,6 +48,16 @@ def pdf_bytes():
 
 
 class TemplateTests(unittest.TestCase):
+    def test_fills_form_numbers_and_keeps_existing_numbers(self):
+        extra = '<w:p><w:r><w:t>แผ่นที่ : </w:t></w:r></w:p><w:p><w:r><w:t>หน้า</w:t></w:r><w:r><w:t>ที่</w:t></w:r></w:p><w:p><w:r><w:t>หน้าที่ 99</w:t></w:r></w:p>'
+        output = render_template(template_bytes(extra), plan_data(), sheet_number=2, page_number=7)
+        with ZipFile(BytesIO(output)) as archive:
+            root = etree.fromstring(archive.read('word/document.xml'))
+            paragraphs = [text_of(p) for p in root.xpath('.//w:p', namespaces=NS)]
+        self.assertIn('แผ่นที่ :  2', paragraphs)
+        self.assertIn('หน้าที่ 7', paragraphs)
+        self.assertIn('หน้าที่ 99', paragraphs)
+
     def test_split_tokens_rows_and_package_preservation(self):
         source = template_bytes()
         result = render_template(source, plan_data())
