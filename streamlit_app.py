@@ -112,6 +112,7 @@ if st.button("✨ วิเคราะห์แผนการสอน", use_c
         if not active_key:
             raise PlanError("กรุณากรอก Gemini API Key ก่อนวิเคราะห์")
         with st.status("กำลังสร้างโครงการสอน", expanded=True) as status:
+            st.info("กำลังทำงาน… กรุณารอสักครู่ ระบบกำลังวิเคราะห์แผนการสอน")
             try:
                 plan = generate_plan(active_key, pdf_bytes, template_bytes, settings,
                                      progress=st.write)
