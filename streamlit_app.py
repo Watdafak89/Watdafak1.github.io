@@ -62,11 +62,11 @@ with top_left:
 
 with top_right:
     st.markdown('<div class="card"><h3>📚 ข้อมูลรายวิชา</h3><p>กำหนดข้อมูลหลักสำหรับโครงการสอน</p>', unsafe_allow_html=True)
-    st.markdown('<div class="field-title">รหัสและชื่อวิชา</div>', unsafe_allow_html=True)
+    st.markdown('<div class="field-title">📚 รหัสและชื่อวิชา</div>', unsafe_allow_html=True)
     course_source = st.radio("รหัสและชื่อวิชา", ["อ่านจาก PDF", "กรอกเอง"], horizontal=True, label_visibility="collapsed")
     if course_source == "กรอกเอง":
-        course_code = st.text_input("รหัสวิชา", value="20001-104")
-        course_name = st.text_input("ชื่อวิชา", value="กฏหมายแรงงาน")
+        course_code = st.text_input("รหัสวิชา", value="00000-0000")
+        course_name = st.text_input("ชื่อวิชา", value="")
     else:
         course_code = course_name = ''
     st.caption("ช่องที่เว้นว่างจะอ่านจากแผนการสอน PDF")
