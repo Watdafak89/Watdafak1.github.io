@@ -51,6 +51,63 @@ class TeachingPlan(BaseModel):
     notes: list[str] = Field(max_length=20)
 
 
+def gemini_schema():
+    """Keep local validation strict, but send a small portable JSON schema.
+
+    Sending the Pydantic model through responseSchema mixes its constraints
+    with the provider's OpenAPI schema dialect. Use responseJsonSchema instead.
+    """
+    source = TeachingPlan.model_json_schema()
+    definitions = source.get('$defs', {})
+
+    def simplify(node):
+        if '$ref' in node:
+            return simplify(definitions[node['$ref'].rsplit('/', 1)[-1]])
+        result = {'type': node['type']}
+        if 'properties' in node:
+            result['properties'] = {key: simplify(value) for key, value in node['properties'].items()}
+            result['required'] = node.get('required', [])
+        if 'items' in node:
+            result['items'] = simplify(node['items'])
+        if 'maxLength' in node:
+            result['description'] = f"ข้อความไม่เกิน {node['maxLength']} ตัวอักษร"
+        return result
+
+    return simplify(source)
+
+
+def provider_error(exc, api_key, stage):
+    """Show provider error.message only, never a request, response dump or key."""
+    code = getattr(exc, 'code', None)
+    detail = getattr(exc, 'message', '')
+    detail = detail if isinstance(detail, str) else ''
+    lowered = detail.lower()
+    if any(term in lowered for term in ('api key not valid', 'api_key_invalid', 'api key expired', 'api key was reported as leaked')):
+        message = 'Gemini ปฏิเสธ API Key กรุณาตรวจหรือสร้างคีย์ใหม่ใน Google AI Studio'
+    elif 'user location is not supported' in lowered:
+        message = 'Gemini ไม่รองรับตำแหน่งเซิร์ฟเวอร์ที่แอปกำลังรัน'
+    elif code == 400 and any(term in lowered for term in ('schema', 'constraint', 'too many states')):
+        message = 'Gemini ปฏิเสธรูปแบบคำตอบที่ร้องขอ'
+    else:
+        message = {
+            400: 'Gemini ไม่รับคำขอ โปรดดูรายละเอียดด้านล่าง',
+            401: 'Gemini API Key ไม่ถูกต้อง กรุณาตรวจคีย์แล้วลองใหม่',
+            403: 'API Key ไม่มีสิทธิ์ใช้บริการนี้ กรุณาตรวจสิทธิ์ใน Google AI Studio',
+            404: 'ไม่พบโมเดลหรือไฟล์ที่ร้องขอ กรุณาตรวจชื่อโมเดลแล้วลองใหม่',
+            429: 'โควตา Gemini เต็ม กรุณารอสักครู่หรือตรวจโควตาใน Google AI Studio',
+        }.get(code, 'เชื่อมต่อ Gemini ไม่สำเร็จหรือหมดเวลารอ กรุณาลองใหม่ภายหลัง')
+    # Redact before truncating, including keys embedded in URLs or auth headers.
+    if api_key.strip():
+        detail = detail.replace(api_key.strip(), '[API KEY ถูกซ่อน]')
+    detail = re.sub(r'https?://\S+', '[URL ถูกซ่อน]', detail)
+    detail = re.sub(r'AIza[\w-]+', '[API KEY ถูกซ่อน]', detail)
+    detail = re.sub(r'(?i)(?:bearer\s+|(?:api[_ -]?key|x-goog-api-key)\s*[:=]\s*)[^\s,;]+', '[ข้อมูลยืนยันตัวตนถูกซ่อน]', detail)
+    detail = re.sub(r'[A-Za-z0-9+/=_-]{80,}', '[ข้อมูลยาวถูกซ่อน]', detail)
+    detail = ' '.join(detail.split())[:600]
+    http_code = f'HTTP {code}' if isinstance(code, int) else 'การเชื่อมต่อ'
+    return f'{message}\n\nขั้นตอน: {stage} · {http_code}' + (f'\n\nรายละเอียดจาก Gemini: {detail}' if detail else '')
+
+
 def text_of(element):
     return ''.join(element.xpath('.//w:t/text()', namespaces=NS))
 
@@ -178,12 +235,14 @@ def generate_plan(api_key, pdf, template, overrides, model=DEFAULT_MODEL, progre
     factory = client_factory or genai.Client
     uploaded = None
     client = None
+    stage = 'ส่งไฟล์ PDF'
     try:
         client = factory(api_key=api_key.strip(), http_options=types.HttpOptions(
             timeout=180000, retry_options=types.HttpRetryOptions(attempts=1)))
         progress(f'กำลังส่งแผนการสอน {page_count} หน้าให้ Gemini')
         uploaded = client.files.upload(file=BytesIO(pdf), config={'mime_type': 'application/pdf', 'display_name': 'lesson-plan.pdf'})
         deadline = time.monotonic() + 120
+        stage = 'เตรียมไฟล์ PDF'
         while uploaded.state and uploaded.state.name == 'PROCESSING':
             if time.monotonic() >= deadline:
                 raise PlanError('Gemini ใช้เวลาเตรียม PDF นานเกินไป กรุณาลองใหม่ภายหลัง')
@@ -192,11 +251,12 @@ def generate_plan(api_key, pdf, template, overrides, model=DEFAULT_MODEL, progre
         if uploaded.state and uploaded.state.name == 'FAILED':
             raise PlanError('Gemini อ่านไฟล์ PDF ไม่สำเร็จ กรุณาตรวจไฟล์แล้วลองใหม่')
         progress('Gemini กำลังวิเคราะห์และจัดตารางรายสัปดาห์ อาจใช้เวลาสักครู่')
+        stage = 'วิเคราะห์แผนการสอน'
         response = client.models.generate_content(
             model=model,
             contents=[uploaded, json.dumps({'user_settings': overrides, 'template_reference': layout}, ensure_ascii=False)],
             config=types.GenerateContentConfig(system_instruction=SYSTEM_PROMPT,
-                response_mime_type='application/json', response_schema=TeachingPlan,
+                response_mime_type='application/json', response_json_schema=gemini_schema(),
                 max_output_tokens=24000),
         )
         if not response.text:
@@ -211,16 +271,7 @@ def generate_plan(api_key, pdf, template, overrides, model=DEFAULT_MODEL, progre
     except PlanError:
         raise
     except Exception as exc:
-        # Never expose provider responses, which can contain keys or document data.
-        code = getattr(exc, 'code', None)
-        message = {
-            400: 'Gemini ไม่รับคำขอนี้ กรุณาตรวจ API Key, PDF และชื่อโมเดล',
-            401: 'Gemini API Key ไม่ถูกต้อง กรุณาตรวจคีย์แล้วลองใหม่',
-            403: 'API Key ไม่มีสิทธิ์ใช้โมเดลนี้ กรุณาตรวจสิทธิ์ใน Google AI Studio',
-            404: 'ไม่พบโมเดล Gemini ที่เลือก กรุณาเปลี่ยนชื่อโมเดล',
-            429: 'โควตา Gemini เต็ม กรุณารอสักครู่หรือตรวจโควตาใน Google AI Studio',
-        }.get(code, 'เชื่อมต่อ Gemini ไม่สำเร็จหรือหมดเวลารอ กรุณาลองใหม่ภายหลัง')
-        raise PlanError(message) from exc
+        raise PlanError(provider_error(exc, api_key, stage)) from exc
     finally:
         if client is not None:
             if uploaded is not None and uploaded.name:

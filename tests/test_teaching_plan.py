@@ -10,7 +10,7 @@ from pypdf import PdfWriter
 
 from teaching_plan import (
     END, NS, START, PlanError, generate_plan, inspect_template,
-    render_template, text_of, validate_pdf, validate_plan,
+    render_template, text_of, validate_pdf, validate_plan, gemini_schema, provider_error,
 )
 
 
@@ -109,9 +109,30 @@ class GeminiTests(unittest.TestCase):
                 headers={}, body=json.dumps(response))
         ) as request:
             output = client.models.generate_content(model='gemini-2.5-flash', contents='test',
-                config=types.GenerateContentConfig(response_mime_type='application/json', response_schema=TeachingPlan))
+                config=types.GenerateContentConfig(response_mime_type='application/json', response_json_schema=gemini_schema()))
             self.assertEqual(json.loads(output.text)['n'], 2)
             request.assert_called_once()
+            wire_config = request.call_args.args[2]['generationConfig']
+            self.assertNotIn('responseSchema', wire_config)
+            self.assertEqual(wire_config['responseJsonSchema'], gemini_schema())
+            serialized = json.dumps(wire_config['responseJsonSchema'])
+            for unsupported in ('additional_properties', 'max_length', '$ref', '$defs', 'maxItems'):
+                self.assertNotIn(unsupported, serialized)
+
+    def test_error_details_redact_keys_and_identify_stage(self):
+        error = SimpleNamespace(code=400, message='API key not valid. test-secret https://example.test/?key=test-secret')
+        message = provider_error(error, 'test-secret', 'ส่งไฟล์ PDF')
+        self.assertIn('ปฏิเสธ API Key', message)
+        self.assertIn('ส่งไฟล์ PDF', message)
+        self.assertIn('HTTP 400', message)
+        self.assertNotIn('test-secret', message)
+        self.assertNotIn('https://', message)
+
+    def test_schema_error_preserves_diagnostic(self):
+        error = SimpleNamespace(code=400, message='response schema has too many states')
+        message = provider_error(error, 'test-key', 'วิเคราะห์แผนการสอน')
+        self.assertIn('รูปแบบคำตอบ', message)
+        self.assertIn('too many states', message)
 
     def client(self):
         client = Mock()
@@ -127,6 +148,8 @@ class GeminiTests(unittest.TestCase):
         self.assertEqual(result.n, 2)
         config = client.models.generate_content.call_args.kwargs['config']
         self.assertEqual(config.response_mime_type, 'application/json')
+        self.assertIsNone(config.response_schema)
+        self.assertEqual(config.response_json_schema, gemini_schema())
         self.assertIn('เอกสารอ้างอิงเท่านั้น', config.system_instruction)
         self.assertEqual(client.files.upload.call_args.kwargs['file'].getvalue(), pdf_bytes())
         client.files.delete.assert_called_once_with(name='files/test')
