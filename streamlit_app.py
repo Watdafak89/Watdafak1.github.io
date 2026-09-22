@@ -52,6 +52,14 @@ with top_left:
             st.warning("กรุณากรอก API Key")
     st.markdown("[กดเพื่อรับ Gemini API Key](https://aistudio.google.com/apikey)")
     st.caption("เมื่อกดวิเคราะห์ PDF และข้อความใน template จะถูกส่งให้ Google Gemini โดยใช้ API Key ของคุณ")
+    st.markdown('<div class="band">📚 แบบฟอร์มโครงการสอน</div>', unsafe_allow_html=True)
+    st.markdown('<p class="upload-title">อัปโหลด template DOCX</p>', unsafe_allow_html=True)
+    st.caption("ใช้เมื่อเริ่มงาน หรือเมื่อต้องการเปลี่ยนแบบฟอร์ม")
+    form_file = st.file_uploader("อัปโหลดแบบฟอร์ม", type=["docx"], key="form_file")
+    st.caption("ไม่เกิน 15 MB และต้องมีช่องข้อมูลกับแถวรายสัปดาห์ตามแบบฟอร์ม")
+    st.markdown('<p>แผนการสอน (PDF)</p>', unsafe_allow_html=True)
+    lesson_plan = st.file_uploader("อัปโหลดแผนการสอน", type=["pdf"], key="lesson_plan", label_visibility="collapsed")
+    st.caption("PDF ไม่เกิน 50 MB และ 1,000 หน้า")
     st.markdown("</div>", unsafe_allow_html=True)
 
 with top_right:
@@ -72,28 +80,15 @@ with top_right:
         year = st.selectbox("ปีที่", ["อ่านจาก PDF", "1", "2", "3"])
     st.markdown("</div>", unsafe_allow_html=True)
 
-documents, schedule = st.columns(2, gap="large")
-with documents:
-    st.markdown('<div class="band">📚 แบบฟอร์มโครงการสอน</div>', unsafe_allow_html=True)
-    st.markdown('<p class="upload-title">อัปโหลด template DOCX</p>', unsafe_allow_html=True)
-    st.caption("ใช้เมื่อเริ่มงาน หรือเมื่อต้องการเปลี่ยนแบบฟอร์ม")
-    form_file = st.file_uploader("อัปโหลดแบบฟอร์ม", type=["docx"], key="form_file")
-    st.caption("ไม่เกิน 15 MB และต้องมีช่องข้อมูลกับแถวรายสัปดาห์ตามแบบฟอร์ม")
-    st.markdown('<p>แผนการสอน (PDF)</p>', unsafe_allow_html=True)
-    lesson_plan = st.file_uploader("อัปโหลดแผนการสอน", type=["pdf"], key="lesson_plan", label_visibility="collapsed")
-    st.caption("PDF ไม่เกิน 50 MB และ 1,000 หน้า")
-    st.markdown("</div>", unsafe_allow_html=True)
-
-with schedule:
-    st.markdown('<div class="band">🎓 กำหนดข้อมูลการเรียน</div>', unsafe_allow_html=True)
-    hours_col, weeks_col, semester_col = st.columns(3)
-    with hours_col:
-        hours = st.number_input("ชั่วโมง/สัปดาห์", min_value=0, max_value=40, value=0, step=1, help="0 = อ่านจาก PDF")
-    with weeks_col:
-        weeks = st.number_input("สัปดาห์/ภาคเรียน", min_value=1, max_value=52, value=18, step=1)
-    with semester_col:
-        semester = st.selectbox("ภาคเรียนที่", ["1/2569", "2/2569"])
-    st.caption("เลขแผ่นและเลขหน้าเรียงอัตโนมัติเมื่อเปิดเอกสารใน Word")
+st.markdown('<div class="band">🎓 กำหนดข้อมูลการเรียน</div>', unsafe_allow_html=True)
+hours_col, weeks_col, semester_col = st.columns(3)
+with hours_col:
+    hours = st.number_input("ชั่วโมง/สัปดาห์", min_value=0, max_value=40, value=0, step=1, help="0 = อ่านจาก PDF")
+with weeks_col:
+    weeks = st.number_input("สัปดาห์/ภาคเรียน", min_value=1, max_value=52, value=18, step=1)
+with semester_col:
+    semester = st.selectbox("ภาคเรียนที่", ["1/2569", "2/2569"])
+st.caption("เลขแผ่นและเลขหน้าเรียงอัตโนมัติเมื่อเปิดเอกสารใน Word")
 
 settings = {
     'code': course_code.strip(), 'subject': course_name.strip(), 'curriculum': curriculum.strip(),
