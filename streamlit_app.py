@@ -76,7 +76,7 @@ with top_right:
         level = st.selectbox("ระดับ", ["อ่านจาก PDF", "ปวช.", "ปวส."])
     with year_col:
         year = st.selectbox("ปีที่", ["อ่านจาก PDF", "1", "2", "3"])
-    st.markdown('<div class="band">🎓 กำหนดข้อมูลการเรียน</div>', unsafe_allow_html=True)
+    st.markdown('<div class="band">📚 กำหนดข้อมูลการเรียน</div>', unsafe_allow_html=True)
     hours_col, weeks_col, semester_col = st.columns(3)
     with hours_col:
         hours = st.selectbox("ชั่วโมง/สัปดาห์", list(range(11)), index=0, help="0 = อ่านจาก PDF")
