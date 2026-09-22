@@ -21,6 +21,7 @@ st.markdown(
     .hero h1 { font-family: 'Kanit', sans-serif; margin: 0 0 8px; font-size: 2.25rem; }
     .hero p { margin: 0; color: #c4f1ef; font-size: .85rem; }
     .band { border-left: 4px solid #18a7a7; border-bottom: 1px solid #d7e9e8; color: #176176; font-size: 1.05rem; font-weight: 600; padding: 8px 12px; margin: 12px 0 14px; background: rgba(228,246,243,.28); }
+    .field-title { color: #176176; font-size: 1.05rem; font-weight: 600; padding: 8px 12px; margin: 12px 0 8px; border-left: 4px solid #18a7a7; border-bottom: 1px solid #d7e9e8; background: rgba(228,246,243,.28); }
     .card { border: 1px solid #cbdcdf; border-radius: 7px; padding: 18px 20px; background: rgba(245,251,251,.55); min-height: 150px; }
     .card h3 { color: #145363; font-family: 'Kanit', sans-serif; font-weight: 500; margin: 0 0 5px; text-align: center; }
     .card p { color: var(--muted); font-size: .78rem; margin: 0 0 12px; text-align: center; }
@@ -54,7 +55,8 @@ with top_left:
 
 with top_right:
     st.markdown('<div class="card"><h3>📚 ข้อมูลรายวิชา</h3><p>กำหนดข้อมูลหลักสำหรับโครงการสอน</p>', unsafe_allow_html=True)
-    course_source = st.radio("รหัสและชื่อวิชา", ["อ่านจาก PDF", "กรอกเอง"], horizontal=True)
+    st.markdown('<div class="field-title">รหัสและชื่อวิชา</div>', unsafe_allow_html=True)
+    course_source = st.radio("รหัสและชื่อวิชา", ["อ่านจาก PDF", "กรอกเอง"], horizontal=True, label_visibility="collapsed")
     if course_source == "กรอกเอง":
         course_code = st.text_input("รหัสวิชา", value="20001-104")
         course_name = st.text_input("ชื่อวิชา", value="กฏหมายแรงงาน")
