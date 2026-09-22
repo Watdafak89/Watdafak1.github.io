@@ -23,6 +23,7 @@ st.markdown(
     .hero p { margin: 0; color: #c4f1ef; font-size: .85rem; }
     .band { border-left: 4px solid #18a7a7; border-bottom: 1px solid #d7e9e8; color: #176176; font-size: 1.05rem; font-weight: 600; padding: 8px 12px; margin: 12px 0 14px; background: rgba(228,246,243,.28); }
     .field-title { color: #176176; font-size: 1.05rem; font-weight: 600; padding: 8px 12px; margin: 12px 0 8px; border-left: 4px solid #18a7a7; border-bottom: 1px solid #d7e9e8; background: rgba(228,246,243,.28); }
+    .upload-label { color: var(--ink); font-size: .9rem; margin: 12px 0 8px; }
     .card { border: 1px solid #cbdcdf; border-radius: 7px; padding: 18px 20px; background: rgba(245,251,251,.55); min-height: 150px; }
     .api-card [data-testid="stTextInput"] input { border: 2px solid #16aeb0; box-shadow: 0 0 0 3px rgba(22,174,176,.12); background: #fff; }
     .card h3 { color: #145363; font-family: 'Kanit', sans-serif; font-weight: 500; margin: 0 0 5px; text-align: center; }
@@ -54,8 +55,9 @@ with top_left:
     st.markdown("[กดเพื่อรับ Gemini API Key](https://aistudio.google.com/apikey)")
     st.caption("เมื่อกดวิเคราะห์ PDF และข้อความใน template จะถูกส่งให้ Google Gemini โดยใช้ API Key ของคุณ")
     st.markdown('<div class="band">📚 แบบฟอร์มโครงการสอน</div>', unsafe_allow_html=True)
-    form_file = st.file_uploader("อัปโหลดแบบฟอร์ม", type=["docx"], key="form_file")
-    st.markdown('<p>อัปโหลดแผนการสอน (PDF)</p>', unsafe_allow_html=True)
+    st.markdown('<p class="upload-label">อัปโหลดแบบฟอร์ม</p>', unsafe_allow_html=True)
+    form_file = st.file_uploader("อัปโหลดแบบฟอร์ม", type=["docx"], key="form_file", label_visibility="collapsed")
+    st.markdown('<p class="upload-label">อัปโหลดแผนการสอน (PDF)</p>', unsafe_allow_html=True)
     lesson_plan = st.file_uploader("อัปโหลดแผนการสอน", type=["pdf"], key="lesson_plan", label_visibility="collapsed")
     st.caption("PDF ไม่เกิน 50 MB และ 1,000 หน้า")
     st.markdown("</div>", unsafe_allow_html=True)
