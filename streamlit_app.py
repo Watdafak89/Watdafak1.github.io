@@ -50,8 +50,6 @@ with top_left:
             st.warning("กรุณากรอก API Key")
     st.markdown("[กดเพื่อรับ Gemini API Key](https://aistudio.google.com/apikey)")
     st.caption("เมื่อกดวิเคราะห์ PDF และข้อความใน template จะถูกส่งให้ Google Gemini โดยใช้ API Key ของคุณ")
-    with st.expander("ตั้งค่าโมเดล Gemini"):
-        model = st.text_input("ชื่อโมเดล", value=DEFAULT_MODEL)
     st.markdown("</div>", unsafe_allow_html=True)
 
 with top_right:
@@ -74,9 +72,10 @@ with top_right:
 documents, schedule = st.columns(2, gap="large")
 with documents:
     st.markdown('<div class="band">📚 แบบฟอร์มโครงการสอน</div>', unsafe_allow_html=True)
-    st.markdown('<div class="card"><p>แบบฟอร์มโครงการสอน (.docx)</p>', unsafe_allow_html=True)
-    form_file = st.file_uploader("อัปโหลดแบบฟอร์ม", type=["docx"], key="form_file", label_visibility="collapsed")
-    st.caption("template DOCX ไม่เกิน 15 MB ใช้ช่องข้อมูลและแถวรายสัปดาห์ตามแบบฟอร์มตัวอย่าง")
+    with st.expander("อัปโหลด template DOCX", expanded=False):
+        st.caption("ใช้เมื่อเริ่มงาน หรือเมื่อต้องการเปลี่ยนแบบฟอร์ม")
+        form_file = st.file_uploader("อัปโหลดแบบฟอร์ม", type=["docx"], key="form_file")
+        st.caption("ไม่เกิน 15 MB และต้องมีช่องข้อมูลกับแถวรายสัปดาห์ตามแบบฟอร์ม")
     st.markdown('<p>แผนการสอน (PDF)</p>', unsafe_allow_html=True)
     lesson_plan = st.file_uploader("อัปโหลดแผนการสอน", type=["pdf"], key="lesson_plan", label_visibility="collapsed")
     st.caption("PDF ไม่เกิน 50 MB และ 1,000 หน้า")
@@ -104,7 +103,7 @@ template_bytes = form_file.getvalue() if form_file is not None else b''
 pdf_bytes = lesson_plan.getvalue() if lesson_plan is not None else b''
 fingerprint = hashlib.sha256(
     hashlib.sha256(template_bytes).digest() + hashlib.sha256(pdf_bytes).digest()
-    + json.dumps(settings, sort_keys=True, ensure_ascii=False).encode() + model.strip().encode()
+    + json.dumps(settings, sort_keys=True, ensure_ascii=False).encode() + DEFAULT_MODEL.encode()
 ).hexdigest()
 
 if st.button("✨ วิเคราะห์แผนการสอน", use_container_width=True, type="primary"):
@@ -115,12 +114,10 @@ if st.button("✨ วิเคราะห์แผนการสอน", use_c
         active_key = api_key.strip() or st.session_state.get('saved_api_key', '')
         if not active_key:
             raise PlanError("กรุณากรอก Gemini API Key ก่อนวิเคราะห์")
-        if not re.fullmatch(r'[a-zA-Z0-9_.-]+', model.strip()):
-            raise PlanError("กรุณาระบุชื่อโมเดล Gemini ให้ถูกต้อง")
         with st.status("กำลังสร้างโครงการสอน", expanded=True) as status:
             try:
                 plan = generate_plan(active_key, pdf_bytes, template_bytes, settings,
-                                     model=model.strip(), progress=st.write)
+                                     model=DEFAULT_MODEL, progress=st.write)
                 st.write("กำลังเติมข้อมูลลงใน template")
                 render_template(template_bytes, plan)
                 status.update(label="สร้างโครงการสอนแล้ว", state="complete", expanded=False)
