@@ -1,4 +1,10 @@
+import hashlib
+import json
+import re
+
 import streamlit as st
+
+from teaching_plan import DEFAULT_MODEL, PlanError, generate_plan, render_template, validate_plan
 
 
 st.set_page_config(page_title="ระบบจัดทำโครงการสอน", page_icon="📚", layout="wide")
@@ -36,19 +42,29 @@ with top_left:
     st.markdown('<div class="card"><h3>🔑 Gemini API Key</h3><p>ใส่ API Key แล้วกดบันทึกก่อนวิเคราะห์เอกสาร</p>', unsafe_allow_html=True)
     api_key = st.text_input("Gemini API Key", type="password", placeholder="วาง API Key ของคุณ", label_visibility="collapsed")
     if st.button("บันทึก API Key", key="save_key", use_container_width=True):
-        st.success("บันทึก API Key สำหรับเซสชันนี้แล้ว")
+        if api_key.strip():
+            st.session_state['saved_api_key'] = api_key.strip()
+            st.success("บันทึก API Key สำหรับเซสชันนี้แล้ว")
+        else:
+            st.session_state.pop('saved_api_key', None)
+            st.warning("กรุณากรอก API Key")
     st.markdown("[กดเพื่อรับ Gemini API Key](https://aistudio.google.com/apikey)")
+    st.caption("เมื่อกดวิเคราะห์ PDF และข้อความใน template จะถูกส่งให้ Google Gemini โดยใช้ API Key ของคุณ")
+    with st.expander("ตั้งค่าโมเดล Gemini"):
+        model = st.text_input("ชื่อโมเดล", value=DEFAULT_MODEL)
     st.markdown("</div>", unsafe_allow_html=True)
 
 with top_right:
     st.markdown('<div class="card"><h3>📚 ข้อมูลรายวิชา</h3><p>กำหนดข้อมูลหลักสำหรับโครงการสอน</p>', unsafe_allow_html=True)
-    course_code = st.text_input("รหัสวิชา", value="21901-2011")
-    course_name = st.text_input("ชื่อวิชา", value="การพัฒนาแอปพลิเคชันบนอุปกรณ์เคลื่อนที่")
+    st.caption("เว้นว่างเพื่ออ่านข้อมูลจากแผนการสอน PDF")
+    course_code = st.text_input("รหัสวิชา", placeholder="อ่านจาก PDF")
+    course_name = st.text_input("ชื่อวิชา", placeholder="อ่านจาก PDF")
+    curriculum = st.text_input("หลักสูตร", placeholder="อ่านจาก PDF")
     level_col, year_col = st.columns(2)
     with level_col:
-        level = st.selectbox("ระดับ", ["ปวช.", "ปวส."])
+        level = st.selectbox("ระดับ", ["อ่านจาก PDF", "ปวช.", "ปวส."])
     with year_col:
-        year = st.selectbox("ปีที่", ["1", "2", "3"])
+        year = st.selectbox("ปีที่", ["อ่านจาก PDF", "1", "2", "3"])
     st.markdown("</div>", unsafe_allow_html=True)
 
 documents, schedule = st.columns(2, gap="large")
@@ -56,23 +72,95 @@ with documents:
     st.markdown('<div class="band">📚 แบบฟอร์มและโครงการสอน</div>', unsafe_allow_html=True)
     st.markdown('<div class="card"><p>แบบฟอร์มโครงการสอน (.docx)</p>', unsafe_allow_html=True)
     form_file = st.file_uploader("อัปโหลดแบบฟอร์ม", type=["docx"], key="form_file", label_visibility="collapsed")
+    st.caption("template DOCX ไม่เกิน 15 MB ใช้ช่องข้อมูลและแถวรายสัปดาห์ตามแบบฟอร์มตัวอย่าง")
     st.markdown('<p>แผนการสอน (PDF)</p>', unsafe_allow_html=True)
     lesson_plan = st.file_uploader("อัปโหลดแผนการสอน", type=["pdf"], key="lesson_plan", label_visibility="collapsed")
+    st.caption("PDF ไม่เกิน 50 MB และ 1,000 หน้า")
     st.markdown("</div>", unsafe_allow_html=True)
 
 with schedule:
     st.markdown('<div class="band">🎓 กำหนดข้อมูลการเรียน</div>', unsafe_allow_html=True)
     hours_col, weeks_col, semester_col = st.columns(3)
     with hours_col:
-        hours = st.number_input("ชั่วโมง/สัปดาห์", min_value=0, value=5, step=1)
+        hours = st.number_input("ชั่วโมง/สัปดาห์", min_value=0, max_value=40, value=0, step=1, help="0 = อ่านจาก PDF")
     with weeks_col:
-        weeks = st.number_input("สัปดาห์/ภาคเรียน", min_value=0, value=18, step=1)
+        weeks = st.number_input("สัปดาห์/ภาคเรียน", min_value=1, max_value=52, value=18, step=1)
     with semester_col:
-        semester = st.text_input("ภาคเรียนที่", value="1/2569")
+        semester = st.text_input("ภาคเรียนที่", placeholder="เช่น 1/2569")
 
 st.write("")
+settings = {
+    'code': course_code.strip(), 'subject': course_name.strip(), 'curriculum': curriculum.strip(),
+    'level': '' if level == 'อ่านจาก PDF' else level,
+    'year_level': '' if year == 'อ่านจาก PDF' else year,
+    'h': hours, 'n': weeks, 'term': semester.strip(),
+}
+template_bytes = form_file.getvalue() if form_file is not None else b''
+pdf_bytes = lesson_plan.getvalue() if lesson_plan is not None else b''
+fingerprint = hashlib.sha256(
+    hashlib.sha256(template_bytes).digest() + hashlib.sha256(pdf_bytes).digest()
+    + json.dumps(settings, sort_keys=True, ensure_ascii=False).encode() + model.strip().encode()
+).hexdigest()
+
 if st.button("✨ วิเคราะห์แผนการสอน", use_container_width=True, type="primary"):
-    if lesson_plan is None:
-        st.warning("กรุณาแนบไฟล์แผนการสอน PDF ก่อนเริ่มวิเคราะห์")
-    else:
-        st.success(f"พร้อมวิเคราะห์ {lesson_plan.name} · {course_code} · {level} ปีที่ {year}")
+    st.session_state.pop('generated_plan', None)
+    try:
+        if form_file is None or lesson_plan is None:
+            raise PlanError("กรุณาแนบ template DOCX และแผนการสอน PDF ให้ครบก่อนวิเคราะห์")
+        active_key = api_key.strip() or st.session_state.get('saved_api_key', '')
+        if not active_key:
+            raise PlanError("กรุณากรอก Gemini API Key ก่อนวิเคราะห์")
+        if not re.fullmatch(r'[a-zA-Z0-9_.-]+', model.strip()):
+            raise PlanError("กรุณาระบุชื่อโมเดล Gemini ให้ถูกต้อง")
+        with st.status("กำลังสร้างโครงการสอน", expanded=True) as status:
+            try:
+                plan = generate_plan(active_key, pdf_bytes, template_bytes, settings,
+                                     model=model.strip(), progress=st.write)
+                st.write("กำลังเติมข้อมูลลงใน template")
+                render_template(template_bytes, plan)
+                status.update(label="สร้างโครงการสอนแล้ว", state="complete", expanded=False)
+            except Exception:
+                status.update(label="สร้างโครงการสอนไม่สำเร็จ", state="error")
+                raise
+        st.session_state['plan_revision'] = st.session_state.get('plan_revision', 0) + 1
+        st.session_state['generated_plan'] = {'fingerprint': fingerprint, 'data': plan.model_dump()}
+    except PlanError as exc:
+        st.error(str(exc))
+    except Exception:
+        st.error("สร้างเอกสารไม่สำเร็จ กรุณาตรวจ template แล้วลองใหม่")
+
+result = st.session_state.get('generated_plan')
+if result and result['fingerprint'] != fingerprint:
+    st.info("ไฟล์หรือข้อมูลรายวิชาเปลี่ยนแล้ว กรุณากดวิเคราะห์ใหม่เพื่อสร้างเอกสารให้ตรงกับข้อมูลล่าสุด")
+elif result:
+    st.subheader("ตรวจแก้โครงการสอนก่อนดาวน์โหลด")
+    data = result['data']
+    for note in data['notes']:
+        st.info(note)
+    revision = st.session_state['plan_revision']
+    meta_labels = {'curriculum': 'หลักสูตร', 'code': 'รหัสวิชา', 'subject': 'ชื่อวิชา',
+                   'level': 'ระดับ', 'year_level': 'ปีที่', 'h': 'ชั่วโมง/สัปดาห์',
+                   'n': 'สัปดาห์/ภาคเรียน', 'term': 'ภาคเรียนที่'}
+    with st.expander("ข้อมูลรายวิชาที่จะใส่ในเอกสาร", expanded=True):
+        metadata = st.data_editor(
+            [{"รายการ": label, "ข้อมูล": str(data[key])} for key, label in meta_labels.items()],
+            disabled=['รายการ'], hide_index=True, use_container_width=True,
+            key=f'metadata_{revision}',
+        )
+    edited = st.data_editor(data['weeks'], hide_index=True, use_container_width=True,
+        disabled=['w'], key=f'weeks_{revision}', column_config={
+            'w': 'สัปดาห์', 't': 'หัวข้อ', 'p': 'Teaching Point',
+            'a': 'กิจกรรม', 'm': 'สื่อ', 'e': 'วัดผล',
+        })
+    try:
+        updated = {**data, 'weeks': edited}
+        updated.update({key: row['ข้อมูล'] for key, row in zip(meta_labels, metadata)})
+        document = render_template(template_bytes, validate_plan(updated))
+        safe_code = re.sub(r'[^\w.-]', '_', str(updated['code']))[:60]
+        st.download_button("ดาวน์โหลดโครงการสอน Word", data=document,
+            file_name=f'โครงการสอน_{safe_code}.docx',
+            mime='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            use_container_width=True)
+        st.caption("ตรวจเนื้อหาและการแบ่งหน้าใน Word ก่อนนำไปใช้งาน")
+    except PlanError as exc:
+        st.error(str(exc))
