@@ -24,6 +24,7 @@ st.markdown(
     .band { border-left: 4px solid #18a7a7; border-bottom: 1px solid #d7e9e8; color: #176176; font-size: 1.05rem; font-weight: 600; padding: 8px 12px; margin: 12px 0 14px; background: rgba(228,246,243,.28); }
     .field-title { color: #176176; font-size: 1.05rem; font-weight: 600; padding: 8px 12px; margin: 12px 0 8px; border-left: 4px solid #18a7a7; border-bottom: 1px solid #d7e9e8; background: rgba(228,246,243,.28); }
     .card { border: 1px solid #cbdcdf; border-radius: 7px; padding: 18px 20px; background: rgba(245,251,251,.55); min-height: 150px; }
+    .api-card { border: 2px solid #16aeb0; box-shadow: 0 0 0 4px rgba(22,174,176,.10), 0 10px 18px rgba(18,63,73,.08); }
     .card h3 { color: #145363; font-family: 'Kanit', sans-serif; font-weight: 500; margin: 0 0 5px; text-align: center; }
     .card p { color: var(--muted); font-size: .78rem; margin: 0 0 12px; text-align: center; }
     .stButton > button { border-color: #137d84; color: white; background: #16aeb0; border-radius: 7px; }
@@ -41,7 +42,7 @@ st.markdown(
 
 top_left, top_right = st.columns(2, gap="large")
 with top_left:
-    st.markdown('<div class="card"><h3>🔑 Gemini API Key</h3><p>ใส่ API Key แล้วกดบันทึกก่อนวิเคราะห์เอกสาร</p>', unsafe_allow_html=True)
+    st.markdown('<div class="card api-card"><h3>🔑 Gemini API Key</h3><p>ใส่ API Key แล้วกดบันทึกก่อนวิเคราะห์เอกสาร</p>', unsafe_allow_html=True)
     api_key = st.text_input("Gemini API Key", type="password", placeholder="วาง API Key ของคุณ", label_visibility="collapsed")
     if st.button("บันทึก API Key", key="save_key", use_container_width=True):
         if api_key.strip():
