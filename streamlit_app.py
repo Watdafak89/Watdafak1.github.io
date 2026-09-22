@@ -4,7 +4,7 @@ import re
 
 import streamlit as st
 
-from teaching_plan import DEFAULT_MODEL, PlanError, generate_plan, render_template, validate_plan
+from teaching_plan import PlanError, generate_plan, render_template, validate_plan
 
 
 st.set_page_config(page_title="ระบบจัดทำโครงการสอน", page_icon="📚", layout="wide")
@@ -95,7 +95,6 @@ with schedule:
         semester = st.selectbox("ภาคเรียนที่", ["1/2569", "2/2569"])
     st.caption("เลขแผ่นและเลขหน้าเรียงอัตโนมัติเมื่อเปิดเอกสารใน Word")
 
-st.write("")
 settings = {
     'code': course_code.strip(), 'subject': course_name.strip(), 'curriculum': curriculum.strip(),
     'level': '' if level == 'อ่านจาก PDF' else level,
@@ -106,7 +105,7 @@ template_bytes = form_file.getvalue() if form_file is not None else b''
 pdf_bytes = lesson_plan.getvalue() if lesson_plan is not None else b''
 fingerprint = hashlib.sha256(
     hashlib.sha256(template_bytes).digest() + hashlib.sha256(pdf_bytes).digest()
-    + json.dumps(settings, sort_keys=True, ensure_ascii=False).encode() + DEFAULT_MODEL.encode()
+    + json.dumps(settings, sort_keys=True, ensure_ascii=False).encode()
 ).hexdigest()
 
 if st.button("✨ วิเคราะห์แผนการสอน", use_container_width=True, type="primary"):
@@ -120,7 +119,7 @@ if st.button("✨ วิเคราะห์แผนการสอน", use_c
         with st.status("กำลังสร้างโครงการสอน", expanded=True) as status:
             try:
                 plan = generate_plan(active_key, pdf_bytes, template_bytes, settings,
-                                     model=DEFAULT_MODEL, progress=st.write)
+                                     progress=st.write)
                 st.write("กำลังเติมข้อมูลลงใน template")
                 render_template(template_bytes, plan)
                 status.update(label="สร้างโครงการสอนแล้ว", state="complete", expanded=False)
