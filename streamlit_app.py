@@ -78,17 +78,16 @@ with top_right:
         level = st.selectbox("ระดับ", ["อ่านจาก PDF", "ปวช.", "ปวส."])
     with year_col:
         year = st.selectbox("ปีที่", ["อ่านจาก PDF", "1", "2", "3"])
+    st.markdown('<div class="band">🎓 กำหนดข้อมูลการเรียน</div>', unsafe_allow_html=True)
+    hours_col, weeks_col, semester_col = st.columns(3)
+    with hours_col:
+        hours = st.number_input("ชั่วโมง/สัปดาห์", min_value=0, max_value=40, value=0, step=1, help="0 = อ่านจาก PDF")
+    with weeks_col:
+        weeks = st.number_input("สัปดาห์/ภาคเรียน", min_value=1, max_value=52, value=18, step=1)
+    with semester_col:
+        semester = st.selectbox("ภาคเรียนที่", ["1/2569", "2/2569"])
+    st.caption("เลขแผ่นและเลขหน้าเรียงอัตโนมัติเมื่อเปิดเอกสารใน Word")
     st.markdown("</div>", unsafe_allow_html=True)
-
-st.markdown('<div class="band">🎓 กำหนดข้อมูลการเรียน</div>', unsafe_allow_html=True)
-hours_col, weeks_col, semester_col = st.columns(3)
-with hours_col:
-    hours = st.number_input("ชั่วโมง/สัปดาห์", min_value=0, max_value=40, value=0, step=1, help="0 = อ่านจาก PDF")
-with weeks_col:
-    weeks = st.number_input("สัปดาห์/ภาคเรียน", min_value=1, max_value=52, value=18, step=1)
-with semester_col:
-    semester = st.selectbox("ภาคเรียนที่", ["1/2569", "2/2569"])
-st.caption("เลขแผ่นและเลขหน้าเรียงอัตโนมัติเมื่อเปิดเอกสารใน Word")
 
 settings = {
     'code': course_code.strip(), 'subject': course_name.strip(), 'curriculum': curriculum.strip(),
