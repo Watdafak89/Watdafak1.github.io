@@ -11,7 +11,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from pypdf import PdfReader
 
 
-DEFAULT_MODEL = 'gemini-2.5-flash'
+DEFAULT_MODEL = 'gemini-3.5-flash'
 MAX_PDF_BYTES = 50 * 1024 * 1024
 MAX_TEMPLATE_BYTES = 15 * 1024 * 1024
 NS = {'w': 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'}
