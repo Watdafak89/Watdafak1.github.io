@@ -240,7 +240,7 @@ def generate_plan(api_key, pdf, template, overrides, model=DEFAULT_MODEL, progre
     stage = 'ส่งไฟล์ PDF'
     try:
         client = factory(api_key=api_key.strip(), http_options=types.HttpOptions(
-            timeout=180000, retry_options=types.HttpRetryOptions(attempts=1)))
+            timeout=180000, retry_options=types.HttpRetryOptions(attempts=3)))
         progress(f'กำลังส่งแผนการสอน {page_count} หน้าให้ Gemini')
         uploaded = client.files.upload(file=BytesIO(pdf), config={'mime_type': 'application/pdf', 'display_name': 'lesson-plan.pdf'})
         deadline = time.monotonic() + 120
