@@ -81,7 +81,7 @@ with top_right:
     with hours_col:
         hours = st.selectbox("ชั่วโมง/สัปดาห์", list(range(11)), index=0, help="0 = อ่านจาก PDF")
     with weeks_col:
-        weeks = st.number_input("สัปดาห์/ภาคเรียน", min_value=1, max_value=52, value=18, step=1)
+        weeks = st.selectbox("สัปดาห์/ภาคเรียน", [15, 18], index=1)
     with semester_col:
         semester = st.selectbox("ภาคเรียนที่", ["1/2569", "2/2569"])
     st.caption("เลขแผ่นและเลขหน้าเรียงอัตโนมัติเมื่อเปิดเอกสารใน Word")
