@@ -28,7 +28,8 @@ class StreamlitFlowTests(unittest.TestCase):
         self.assertFalse(app.exception)
         self.assertEqual(len(app.get('download_button')), 1)
         # A changed course must never silently download the previous course's plan.
-        app.text_input[2].set_value('NEW-CODE').run()
+        app.radio[0].set_value('กรอกเอง').run()
+        next(x for x in app.text_input if x.label == 'รหัสวิชา').set_value('NEW-CODE').run()
         self.assertFalse(app.exception)
         self.assertEqual(len(app.get('download_button')), 0)
 

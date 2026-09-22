@@ -56,9 +56,13 @@ with top_left:
 
 with top_right:
     st.markdown('<div class="card"><h3>📚 ข้อมูลรายวิชา</h3><p>กำหนดข้อมูลหลักสำหรับโครงการสอน</p>', unsafe_allow_html=True)
-    st.caption("เว้นว่างเพื่ออ่านข้อมูลจากแผนการสอน PDF")
-    course_code = st.text_input("รหัสวิชา", placeholder="อ่านจาก PDF")
-    course_name = st.text_input("ชื่อวิชา", placeholder="อ่านจาก PDF")
+    course_source = st.radio("รหัสและชื่อวิชา", ["อ่านจาก PDF", "กรอกเอง"], horizontal=True)
+    if course_source == "กรอกเอง":
+        course_code = st.text_input("รหัสวิชา", value="20001-104")
+        course_name = st.text_input("ชื่อวิชา", value="กฏหมายแรงงาน")
+    else:
+        course_code = course_name = ''
+    st.caption("ช่องที่เว้นว่างจะอ่านจากแผนการสอน PDF")
     curriculum = st.text_input("หลักสูตร", placeholder="อ่านจาก PDF")
     level_col, year_col = st.columns(2)
     with level_col:
@@ -69,7 +73,7 @@ with top_right:
 
 documents, schedule = st.columns(2, gap="large")
 with documents:
-    st.markdown('<div class="band">📚 แบบฟอร์มและโครงการสอน</div>', unsafe_allow_html=True)
+    st.markdown('<div class="band">📚 แบบฟอร์มโครงการสอน</div>', unsafe_allow_html=True)
     st.markdown('<div class="card"><p>แบบฟอร์มโครงการสอน (.docx)</p>', unsafe_allow_html=True)
     form_file = st.file_uploader("อัปโหลดแบบฟอร์ม", type=["docx"], key="form_file", label_visibility="collapsed")
     st.caption("template DOCX ไม่เกิน 15 MB ใช้ช่องข้อมูลและแถวรายสัปดาห์ตามแบบฟอร์มตัวอย่าง")
